@@ -1,0 +1,69 @@
+# Required Discord settings
+DISCORD_BOT_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxx"
+DISCORD_USER_ID="123456789012345678,234567890123456789"
+
+# Site info
+STREET="123-JohnDoe-Ave"
+CITY="ABC-NY-10001"
+
+# Cameras (USB only)
+CAM0="LPR"
+DEV0="/dev/video0"
+CAM1="LPR"
+DEV1="/dev/video2"
+
+# Optional camera overrides
+# WIDTH0="1920"
+# HEIGHT0="1080"
+# FPS0="5"
+# CONF0="0.75"
+# NAME0="front-driveway"
+
+# Optional global detection / OCR settings
+MODEL_PATH="best_lpr_800x800.pt"
+OCR_CONFIG="configs/us_multi_v4_20251003_ny7_norm.yaml"
+OCR_CKPT="runs/T22.8K_V2.5K_125.ckpt"
+OCR_DEVICE="cuda"
+OCR_AMP="1"
+LPR_SIZE="800"
+FRAME_WIDTH="1920"
+FRAME_HEIGHT="1080"
+FRAME_RATE="5"
+BBOX_PAD_RATIO="0.15"
+EDGE_MARGIN_PX="0"
+FRAME_JPEG_QUALITY="90"
+DISCORD_FRAME_X="1024"
+DISCORD_FRAME_Y="576"
+LIVE_JPEG_QUALITY="80"
+
+# Live video monitoring
+ENABLE_LIVE_VIDEO="1"
+SOCKET_PATH="/tmp/camera.sock"
+LIVE_WIDTH="640"
+LIVE_HEIGHT="480"
+
+# Output
+OUTPUT_DIR="./video_frames"
+ALL_PLATES_DIR="./all-plates"
+
+# Filters / grouping
+GROUP_WINDOW_SEC="1.0"
+GROUP_IDLE_SEC="0.60"
+RECENT_WINDOW_SEC="10.0"
+PLATE_HISTORY_SIZE="10"
+PARKED_HISTORY_MATCH_COUNT="3"
+STATIONARY_RATIO_THRESHOLD="0.04"
+MOTION_DIFF_THRESHOLD="12.0"
+MOTION_CHANGED_RATIO_THRESHOLD="0.015"
+MIN_PLATE_LEN="4"
+MAX_PLATE_LEN="8"
+REJECT_PREFIXES="125"
+PLATE_PATTERN_BONUS_REGEX="^[A-Z]{3}\\d{4}$"
+
+# Optional correction table / skip list
+LPR_TABLE="lpr-table.txt"
+SKIP_LPR="ABC1234,BCD4567"
+
+# Optional feature toggles
+ENABLE_DISCORD="1"
+QUEUE_MAXSIZE="256"

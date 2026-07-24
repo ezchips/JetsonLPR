@@ -1,0 +1,21 @@
+# configs/us_multi_v4.yaml
+# From-scratch training for US multi-template plates (v4). Inherits your main YAML.
+inherits: us_multi_20251001_pruned_ny7.yaml
+
+model:
+  in_h: 128 #160
+  in_w: 256 #320
+
+train:
+  epochs: 2000
+  batch_size: 64        # adjust to VRAM
+  lr: 5.0e-4
+  weight_decay: 0.01
+  amp: true
+  balance_templates: true
+  # keep lambda_fmt from parent (router is not bottleneck)
+
+input:
+  mean: [0.465, 0.467, 0.518]
+  std: [0.234, 0.237, 0.228]
+
