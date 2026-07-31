@@ -100,4 +100,6 @@ Each video frame generates three files:
 - `..._FRAME_<DISCORD_FRAME_X>x<DISCORD_FRAME_Y>.jpg` — Discord preview image, default `1024x576`
 - `..._PLATE.jpg` — cropped plate image
 
+## License
 
+This project is released under the MIT License. It is provided to encourage research, education, and community collaboration in AI-powered residential security systems.
