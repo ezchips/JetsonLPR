@@ -145,7 +145,7 @@ class AppConfig:
     ocr_char_topk: int
     ocr_beam: int
     ocr_gap_delta: float
-    ocr_blur_gate: float
+    ocr_blur_gate: Optional[float]
 
 
 @dataclass
@@ -1199,6 +1199,23 @@ def as_float(values: Dict[str, str], key: str, default: float) -> float:
         return default
 
 
+def as_optional_float(values: Dict[str, str], key: str, default=None) -> Optional[float]:
+    raw = values.get(key, None)
+
+    if raw is None or str(raw).strip() == "":
+        return default
+
+    cleaned = str(raw).strip().lower()
+
+    if cleaned in {"none", "null", "off", "disabled"}:
+        return None
+
+    try:
+        return float(raw)
+    except Exception:
+        return default
+
+
 def parse_cameras(values: Dict[str, str], defaults: Dict[str, object]) -> List[CameraConfig]:
     indices = sorted(
         {
@@ -1314,7 +1331,7 @@ def load_config(path: str) -> AppConfig:
         ocr_char_topk=as_int(values, "OCR_CHAR_TOPK", 3),
         ocr_beam=as_int(values, "OCR_BEAM", 3),
         ocr_gap_delta=as_float(values, "OCR_GAP_DELTA", 0.22),
-        ocr_blur_gate=as_float(values, "OCR_BLUR_GATE", 80.0),
+        ocr_blur_gate=as_optional_float(values, "OCR_BLUR_GATE", None),
     )
 
 

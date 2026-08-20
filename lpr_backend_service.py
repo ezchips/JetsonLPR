@@ -194,7 +194,7 @@ class PlateRecognizer:
         # Device & AMP
         self.device = ("cuda" if (device == "auto" and torch.cuda.is_available()) else device)
         self.model.to(self.device).eval()
-        self.use_amp = bool(self.cfg_merged.get("eval", {}).get("amp", True)) and (self.device == "cuda")
+        self.use_amp = bool(amp) and (self.device == "cuda")
 
         # Load weights
         ckpt_obj = torch.load(ckpt, map_location=self.device)
@@ -243,53 +243,49 @@ class PlateRecognizer:
             if self.is_multi:
                 fmt_logits, tpl_logits = self.model(x)
 
-                # ----- v3: best among Top‑K router candidates -----
-                texts, confs, tids = self.model.decode(
-                    (fmt_logits, tpl_logits),
-                    charsets_per_template=[t.charsets for t in self.mt_cfg.templates],
-                    topk_templates=max(1, self.topk_templates)
+                # ----- v3: decode using the same supported kwargs as evaluate.py -----
+                import inspect
+
+                dkw = {}
+                params = set(
+                    inspect.signature(self.model.decode).parameters.keys()
                 )
 
-                # Keep the *best* among K (not just index 0)
-                if isinstance(confs, (list, tuple)):
-                    best_k = int(np.argmax([float(c) for c in confs])) if len(confs) else 0
-                else:
-                    best_k = int(np.argmax(np.asarray(confs)))
-                raw_v3, conf_v3, tid_v3 = texts[best_k], float(confs[best_k]), int(tids[best_k])
+                if "topk_templates" in params:
+                    dkw["topk_templates"] = self.topk_templates
+                if "conf_gate" in params:
+                    dkw["conf_gate"] = self.conf_gate
+                if "gap_delta" in params:
+                    dkw["gap_delta"] = self.gap_delta
+                if "beam" in params:
+                    dkw["beam"] = self.beam
+                if "char_topk" in params:
+                    dkw["char_topk"] = self.char_topk
+
+                texts, confs, tids = self.model.decode(
+                    (fmt_logits, tpl_logits),
+                    charsets_per_template=[
+                        t.charsets for t in self.mt_cfg.templates
+                    ],
+                    **dkw
+                )
+
+                # This backend processes exactly one image.
+                # Match evaluate.py semantics: one decoded result per sample.
+                raw_v3 = texts[0]
+                conf_v3 = float(confs[0])
+                tid_v3 = int(tids[0])
+
                 tpl_v3 = self.mt_cfg.templates[tid_v3]
                 text_v3 = _format_with_pattern(raw_v3, tpl_v3.pattern)
 
-                # ----- v4: confidence‑gated, char‑level re‑scoring (optional) -----
+                # Preserve the existing v4 public API, but do not run the
+                # separate backend-only rescoring path here. The goal is to
+                # match evaluate.py's decoded result exactly.
                 raw_v4, conf_v4, tid_v4 = raw_v3, conf_v3, tid_v3
                 tpl_v4 = tpl_v3
                 text_v4 = text_v3
                 rescored = False
-
-                do_rescore = (self.conf_gate is None) or (conf_v3 < self.conf_gate)
-                if do_rescore and (charlevel_beam_rescore is not None):
-                    # Try to slice per‑slot logits to [Pmax, Cmax] for the chosen template.
-                    gl = None
-                    T = len(self.mt_cfg.templates)
-                    if fmt_logits.ndim == 4 and fmt_logits.shape[1] == T:
-                        gl = fmt_logits[0, tid_v3]            # [Pmax, Cmax]
-                    elif fmt_logits.ndim == 4 and fmt_logits.shape[-1] == T:
-                        gl = fmt_logits[0, :, :, tid_v3]      # [Pmax, Cmax]
-                    elif fmt_logits.ndim == 3:
-                        gl = fmt_logits[0]                     # already [Pmax, Cmax] (rare)
-
-                    if gl is not None and gl.ndim == 2:
-                        slot_cs = _expand_slot_charsets(self.named_charsets, tpl_v3)  # <-- uses NAMED_CHARSETS
-                        pos_mask = [ch in ("L", "#") for ch in tpl_v4.pattern]
-
-                        res = charlevel_beam_rescore(
-                            gl, slot_cs, pos_mask, tpl_v4.pattern,
-                            topk=self.char_topk, max_flips=self.beam, gap_delta=self.gap_delta
-                        )
-                        if res and float(res["avg_conf"]) > conf_v3:
-                            raw_v4 = res["text_raw"]
-                            text_v4 = res["text"]
-                            conf_v4 = float(res["avg_conf"])
-                            rescored = True
 
                 return {
                     "v3": {
