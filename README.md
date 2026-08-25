@@ -1,3 +1,5 @@
+![EasyLPR](easylpr-title.jpg)
+
 # JetsonLPR
 
 This is the implementation of [EasyLPR](https://easylpr.com/) using NVIDIA Jetson Orin Nano development board.
