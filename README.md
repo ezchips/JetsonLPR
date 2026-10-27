@@ -2,7 +2,7 @@
 
 # JetsonLPR
 
-This is the implementation of [EasyLPR](https://easylpr.com/) using NVIDIA Jetson Orin Nano development board.
+This is the implementation of [EasyLPR](https://easylpr.com/) using [NVIDIA Jetson Orin Nano development board](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) and [Mobile Vision Transformer (MobileViT)](https://github.com/ezchips/LPR-MobileViT) for home-deployed license plate recognition.
 
 ## Files
 
